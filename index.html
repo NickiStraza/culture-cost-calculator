@@ -1587,21 +1587,16 @@ Warm, grounded, and human. Not clinical or consultant-like. Plain language. No j
       return data.content[0].text;
     }
 
-    /* ── Mailchimp JSONP Subscribe ──────────────────── */
+    /* ── Mailchimp Subscribe (via Netlify function, so it can be tagged) ── */
     function subscribeToMailchimp(email, firstName) {
-      const cb = 'mc_cb_' + Date.now();
-      const params = new URLSearchParams({
-        u: 'bebd41c6246b91fd9a62aae3a', id: '4c288a4b41',
-        EMAIL: email, FNAME: firstName, c: cb
+      fetch('/.netlify/functions/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, firstName: firstName })
+      }).catch(function() {
+        // Suppress error details — a Mailchimp hiccup should not surface to the visitor
+        console.warn('Mailchimp subscribe unavailable.');
       });
-      window[cb] = function() {
-        document.getElementById('_mc_s')?.remove();
-        delete window[cb];
-      };
-      const s = document.createElement('script');
-      s.id  = '_mc_s';
-      s.src = 'https://us21.list-manage.com/subscribe/post-json?' + params;
-      document.body.appendChild(s);
     }
   </script>
 </body>
