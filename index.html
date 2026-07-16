@@ -1,0 +1,1599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Culture Cost Calculator | Straza Solutions</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <style>
+    :root {
+      --teal:       #0b6d61;
+      --teal-light: #1a8f82;
+      --teal-dark:  #074f46;
+      --teal-bg:    #eaf4f2;
+      --gold:       #c69519;
+      --gold-light: #fdf1d0;
+      --sage:       #7fb3aa;
+      --ink:        #1b2d2a;
+      --muted:      #5b7572;
+      --bg:         #f0f5f4;
+      --white:      #ffffff;
+      --border:     #c4dbd7;
+      --red:        #b91c1c;
+      --radius:     14px;
+      --radius-lg:  22px;
+      --shadow:     0 6px 20px rgba(10,50,45,0.08);
+      --shadow-lg:  0 14px 40px rgba(10,50,45,0.11);
+      --ff-display: 'Lora', Georgia, serif;
+      --ff-body:    'Inter', system-ui, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--ff-body);
+      color: var(--ink);
+      background: var(--bg);
+      min-height: 100vh;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* HEADER */
+    .site-header {
+      background: var(--teal-dark);
+      padding: 18px 28px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .logo-lockup { display: flex; align-items: center; gap: 10px; }
+    .logo-dots { display: flex; gap: 3px; flex-wrap: wrap; width: 28px; }
+    .logo-dot { border-radius: 50%; flex-shrink: 0; }
+    .logo-text {
+      font-family: var(--ff-display);
+      font-weight: 700; font-size: 1rem;
+      color: white; letter-spacing: 0.04em; line-height: 1.1;
+    }
+    .logo-text span {
+      display: block; font-weight: 400; font-size: 0.7rem;
+      letter-spacing: 0.12em; color: rgba(255,255,255,0.6); text-transform: uppercase;
+    }
+
+    /* WRAPPER */
+    .wrapper { max-width: 740px; margin: 0 auto; padding: 36px 20px 80px; }
+
+    /* PROGRESS */
+    .progress-wrap { margin-bottom: 36px; }
+    .progress-steps { display: flex; align-items: center; }
+    .p-step { display: flex; align-items: center; gap: 8px; flex: 1; }
+    .p-connector { flex: 1; height: 2px; background: var(--border); margin: 0 8px; transition: background 0.4s; }
+    .p-connector.filled { background: var(--teal); }
+    .p-num {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: var(--border); color: var(--muted);
+      font-size: 0.82rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: all 0.3s;
+    }
+    .p-step.active .p-num, .p-step.done .p-num { background: var(--teal); color: white; }
+    .p-label { font-size: 0.78rem; font-weight: 600; color: var(--muted); white-space: nowrap; }
+    .p-step.active .p-label, .p-step.done .p-label { color: var(--teal); }
+
+    /* STEPS */
+    .step { display: none; }
+    .step.active { display: block; animation: fadeUp 0.32s ease; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* CARD */
+    .card {
+      background: var(--white); border-radius: var(--radius-lg);
+      box-shadow: var(--shadow); padding: 36px 32px; margin-bottom: 20px;
+    }
+    @media (max-width: 580px) { .card { padding: 24px 18px; } }
+
+    /* HEADINGS */
+    .step-heading {
+      font-family: var(--ff-display); font-size: 1.7rem; font-weight: 700;
+      color: var(--ink); margin-bottom: 8px; line-height: 1.2;
+    }
+    .step-sub { color: var(--muted); font-size: 0.93rem; margin-bottom: 32px; line-height: 1.6; max-width: 540px; }
+
+    .prep-note {
+      background: var(--teal-bg);
+      border-left: 3px solid var(--teal);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 14px 16px;
+      margin-bottom: 28px;
+      font-size: 0.88rem;
+      color: var(--ink);
+      line-height: 1.65;
+    }
+    .prep-note strong { font-weight: 700; color: var(--teal-dark); }
+
+    /* SECTION LABEL */
+    .section-label {
+      font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.11em; color: var(--teal);
+      margin-bottom: 16px; margin-top: 28px;
+      padding-bottom: 8px; border-bottom: 1.5px solid var(--teal-bg);
+    }
+    .section-label:first-of-type { margin-top: 0; }
+
+    /* FIELDS */
+    .field { margin-bottom: 18px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 540px) { .field-row { grid-template-columns: 1fr; } }
+    label { display: block; font-size: 0.86rem; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+    .label-note { font-weight: 400; color: var(--muted); }
+    .field-note { font-size: 0.78rem; color: var(--muted); margin-top: 5px; font-style: italic; line-height: 1.45; }
+
+    input[type="text"], input[type="number"], input[type="email"], select, textarea {
+      width: 100%; border: 1.5px solid var(--border); background: var(--white);
+      border-radius: var(--radius); padding: 11px 13px;
+      font-size: 0.94rem; font-family: var(--ff-body); color: var(--ink);
+      outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--teal-light);
+      box-shadow: 0 0 0 3px rgba(11,109,97,0.1);
+    }
+    input.has-error { border-color: var(--red); }
+
+    .input-prefix { position: relative; }
+    .input-prefix .prefix-sym {
+      position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+      color: var(--muted); font-weight: 600; font-size: 0.92rem; pointer-events: none;
+    }
+    .input-prefix input { padding-left: 26px; }
+
+    /* CHECKBOXES */
+    .checkbox-label {
+      display: flex; align-items: flex-start; gap: 10px; cursor: pointer;
+      font-weight: 400; font-size: 0.88rem; color: var(--ink); line-height: 1.5; margin-bottom: 0;
+    }
+    .checkbox-label input[type="checkbox"] {
+      width: 17px; height: 17px; flex-shrink: 0; margin-top: 2px;
+      border: 2px solid var(--border); border-radius: 4px;
+      cursor: pointer; accent-color: var(--teal);
+    }
+
+    /* RADIO CARDS */
+    .radio-cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    @media (max-width: 580px) { .radio-cards { grid-template-columns: 1fr; } }
+    .radio-card { position: relative; }
+    .radio-card input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+    .radio-card label {
+      display: block; border: 2px solid var(--border); border-radius: var(--radius);
+      padding: 15px 13px; cursor: pointer; transition: all 0.2s;
+      background: var(--bg); font-weight: 400; font-size: 0.84rem; line-height: 1.45; margin-bottom: 0;
+    }
+    .radio-card input:checked + label { border-color: var(--teal); background: var(--teal-bg); }
+    .radio-card label strong { display: block; font-size: 0.9rem; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
+
+    /* TOGGLE */
+    .toggle-wrap { display: flex; gap: 8px; margin-top: 6px; }
+    .toggle-btn {
+      border: 2px solid var(--border); background: var(--white); color: var(--muted);
+      border-radius: 8px; padding: 8px 20px; font-size: 0.86rem; font-weight: 600;
+      cursor: pointer; transition: all 0.2s; font-family: var(--ff-body);
+    }
+    .toggle-btn.active { border-color: var(--teal); background: var(--teal-bg); color: var(--teal-dark); }
+    .conditional { display: none; margin-top: 14px; }
+    .conditional.visible { display: block; }
+
+    /* BUTTONS */
+    .step-nav { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 28px; }
+    .btn {
+      border: none; border-radius: var(--radius); padding: 12px 22px;
+      font-size: 0.94rem; font-weight: 700; font-family: var(--ff-body);
+      cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block;
+    }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-primary { background: var(--teal); color: white; }
+    .btn-primary:hover:not(:disabled) { background: var(--teal-dark); }
+    .btn-gold { background: var(--gold); color: white; }
+    .btn-gold:hover:not(:disabled) { background: #a87c12; }
+    .btn-ghost { background: transparent; border: 2px solid var(--border); color: var(--muted); }
+    .btn-ghost:hover { border-color: var(--teal); color: var(--teal); }
+
+    /* ERROR */
+    .err-msg { color: var(--red); font-size: 0.83rem; margin-top: 10px; display: none; }
+    .err-msg.visible { display: block; }
+
+    /* RESULTS STEP */
+    .results-quote {
+      font-family: var(--ff-display); font-style: italic; font-size: 1.1rem;
+      color: var(--muted); text-align: center; padding: 8px 16px 32px;
+      line-height: 1.6; max-width: 540px; margin: 0 auto;
+    }
+
+    /* Total reveal */
+    .total-reveal {
+      background: var(--teal); border-radius: var(--radius-lg);
+      padding: 42px 32px 36px; text-align: center;
+      position: relative; overflow: hidden;
+      margin-bottom: 22px; box-shadow: var(--shadow-lg);
+    }
+    .bg-circles { position: absolute; inset: 0; pointer-events: none; }
+    .bg-c { position: absolute; border-radius: 50%; }
+
+    .total-eyebrow {
+      font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.14em; color: rgba(255,255,255,0.65);
+      margin-bottom: 20px; position: relative;
+    }
+
+    /* Two-column layout: total cost + recoverable side by side */
+    .totals-grid {
+      display: grid;
+      grid-template-columns: 1fr 1px 1fr;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 18px;
+      position: relative;
+    }
+    .totals-divider {
+      background: rgba(255,255,255,0.2);
+      align-self: stretch;
+      margin: 0 16px;
+    }
+    .total-col { text-align: center; }
+    .total-col-label {
+      font-size: 0.7rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.12em;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 10px; position: relative;
+    }
+    .total-main-num {
+      font-family: var(--ff-display);
+      font-size: clamp(2rem, 5.5vw, 3.4rem);
+      font-weight: 700; color: white;
+      line-height: 1; position: relative;
+    }
+    .total-recover-num {
+      font-family: var(--ff-display);
+      font-size: clamp(1.5rem, 4vw, 2.5rem);
+      font-weight: 700; color: rgba(255,255,255,0.88);
+      line-height: 1; position: relative;
+    }
+    @media (max-width: 480px) {
+      .totals-grid { grid-template-columns: 1fr; gap: 0; }
+      .totals-divider { display: none; }
+      .total-col + .total-col { margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.18); }
+    }
+
+    .total-name { font-size: 0.88rem; color: rgba(255,255,255,0.55); margin-bottom: 6px; position: relative; font-style: italic; }
+    .total-context { font-size: 0.82rem; color: rgba(255,255,255,0.6); max-width: 400px; margin: 0 auto; line-height: 1.5; position: relative; }
+
+    .total-recovery {
+      font-size: 0.88rem;
+      color: rgba(255,255,255,0.82);
+      max-width: 480px;
+      margin: 16px auto 0;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255,255,255,0.18);
+      line-height: 1.6;
+      position: relative;
+      font-style: italic;
+    }
+    .total-recovery strong { color: white; font-weight: 700; font-style: normal; }
+
+    /* Recovery reflection callout below AI analysis */
+    .recovery-reflection {
+      background: var(--teal-bg);
+      border-left: 3px solid var(--teal);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 20px 22px;
+      margin-top: 24px;
+    }
+    .recovery-reflection p {
+      font-family: var(--ff-display);
+      font-style: italic;
+      font-size: 1rem;
+      color: var(--teal-dark);
+      line-height: 1.65;
+    }
+
+    /* Culture Audit offer block */
+    .audit-offer {
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px 26px;
+      margin-top: 22px;
+    }
+    .audit-offer-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--teal);
+      margin-bottom: 8px;
+    }
+    .audit-offer-title {
+      font-family: var(--ff-display);
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+    .audit-offer-body {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.65;
+      margin-bottom: 16px;
+    }
+
+    .recovery-block {
+      margin-top: 28px;
+      padding-top: 22px;
+      border-top: 1.5px solid var(--teal-bg);
+    }
+    .recovery-section-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--teal);
+      margin-bottom: 10px;
+    }
+    .recovery-body {
+      font-size: 0.86rem;
+      color: var(--muted);
+      margin-bottom: 16px;
+      line-height: 1.6;
+    }
+    .recovery-amounts {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 540px) { .recovery-amounts { grid-template-columns: 1fr; } }
+    .ra-item {
+      background: var(--bg);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+    }
+    .ra-item-label {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 5px;
+      line-height: 1.4;
+    }
+    .ra-item-amount {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--teal-dark);
+    }
+    .ra-item-amount.baseline { color: var(--muted); }
+
+    /* Cost breakdown */
+    .costs-section-title {
+      font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--muted); margin-bottom: 10px; margin-top: 24px;
+    }
+    .cost-row {
+      display: flex; justify-content: space-between; align-items: baseline;
+      gap: 16px; padding: 11px 0; border-bottom: 1px solid var(--border);
+    }
+    .cost-row:last-of-type { border-bottom: none; }
+    .cost-name { font-weight: 600; font-size: 0.9rem; }
+    .cost-desc { font-size: 0.78rem; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+    .cost-amount { font-weight: 700; font-size: 0.92rem; color: var(--teal-dark); white-space: nowrap; flex-shrink: 0; }
+    .cost-recoverable {
+      font-size: 0.73rem;
+      color: var(--teal-light);
+      font-weight: 600;
+      margin-top: 3px;
+      white-space: nowrap;
+      text-align: right;
+    }
+    .cost-caveat {
+      font-size: 0.72rem;
+      color: var(--gold);
+      margin-top: 4px;
+      font-style: italic;
+      line-height: 1.4;
+      white-space: normal;
+      max-width: 160px;
+      text-align: right;
+    }
+    .subtotal-recoverable {
+      font-size: 0.74rem;
+      color: var(--teal-light);
+      font-weight: 600;
+      margin-top: 2px;
+    }
+    .subtotal-row {
+      display: flex; justify-content: space-between; padding: 12px 14px;
+      background: var(--bg); border-radius: var(--radius); margin-top: 10px;
+      font-weight: 700; font-size: 0.9rem;
+    }
+    .state-badge { display: inline-block; padding: 3px 12px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; }
+    .state-badge.watch    { background: #dcfce7; color: #166534; }
+    .state-badge.stressed { background: #fef3c7; color: #92400e; }
+    .state-badge.critical { background: #fee2e2; color: #991b1b; }
+    .estimate-note { font-size: 0.76rem; color: var(--muted); margin-top: 16px; line-height: 1.5; }
+
+    /* Reflection */
+    .reflection-card {
+      background: var(--gold-light, #fdf1d0);
+      border: 1.5px solid rgba(198,149,25,0.22);
+      border-radius: var(--radius-lg); padding: 32px; margin-top: 22px; margin-bottom: 22px;
+    }
+    .reflection-title { font-family: var(--ff-display); font-size: 1.18rem; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+    .reflection-intro { font-size: 0.9rem; color: var(--muted); margin-bottom: 22px; line-height: 1.6; }
+    .reflection-item { margin-bottom: 18px; }
+    .reflection-item label {
+      display: flex; gap: 10px; font-size: 0.9rem; font-weight: 600;
+      color: var(--ink); margin-bottom: 7px; line-height: 1.45; align-items: flex-start;
+    }
+    .r-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gold); flex-shrink: 0; margin-top: 6px; }
+    .reflection-item textarea {
+      border-color: rgba(198,149,25,0.3); background: rgba(255,255,255,0.65);
+      resize: vertical; min-height: 60px; font-size: 0.88rem;
+    }
+    .reflection-item textarea:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(198,149,25,0.12); }
+    .print-hint { font-size: 0.78rem; color: var(--muted); font-style: italic; margin-top: 14px; }
+
+    /* LEAD CAPTURE */
+    .lead-capture-card {
+      background: var(--white); border: 2px solid var(--teal-bg);
+      border-radius: var(--radius-lg); padding: 32px; margin-bottom: 22px; box-shadow: var(--shadow);
+    }
+    .lc-title { font-family: var(--ff-display); font-size: 1.2rem; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+    .lc-sub { font-size: 0.9rem; color: var(--muted); margin-bottom: 24px; line-height: 1.6; }
+    .lc-checks { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+
+    /* ANALYSIS CARD */
+    .analysis-card {
+      background: var(--white); border-radius: var(--radius-lg);
+      box-shadow: var(--shadow); padding: 36px 32px;
+      margin-bottom: 22px; display: none;
+    }
+    .analysis-card.visible { display: block; animation: fadeUp 0.4s ease; }
+    @media (max-width: 580px) { .analysis-card { padding: 24px 18px; } }
+
+    /* Loading dots animation */
+    .loading-wrap { text-align: center; padding: 20px 0 10px; }
+    .loading-label { font-size: 0.9rem; color: var(--muted); margin-bottom: 16px; font-style: italic; }
+    .dots { display: flex; justify-content: center; gap: 8px; }
+    .dot-pulse {
+      width: 10px; height: 10px; border-radius: 50%; background: var(--teal);
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+    .dot-pulse:nth-child(2) { animation-delay: 0.2s; }
+    .dot-pulse:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes pulse {
+      0%, 80%, 100% { opacity: 0.2; transform: scale(0.85); }
+      40%           { opacity: 1;   transform: scale(1); }
+    }
+
+    /* Analysis content */
+    .analysis-intro {
+      font-size: 0.85rem; color: var(--muted); margin-bottom: 20px;
+      padding-bottom: 16px; border-bottom: 1px solid var(--border);
+    }
+    .analysis-greeting { font-family: var(--ff-display); font-size: 1.15rem; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+    .analysis-body { font-size: 0.95rem; color: var(--ink); line-height: 1.75; }
+    .analysis-body p { margin-bottom: 14px; }
+    .analysis-body p:last-child { margin-bottom: 0; }
+
+    /* Triage CTA (inside analysis card) */
+    .triage-cta {
+      margin-top: 28px; padding-top: 24px;
+      border-top: 1.5px solid var(--teal-bg);
+      text-align: center;
+    }
+    .triage-cta-title {
+      font-family: var(--ff-display); font-size: 1.1rem; font-weight: 700;
+      color: var(--ink); margin-bottom: 8px;
+    }
+    .triage-cta-body { font-size: 0.88rem; color: var(--muted); line-height: 1.6; margin-bottom: 18px; max-width: 420px; margin-left: auto; margin-right: auto; }
+    .triage-cta-contact { font-size: 0.8rem; color: var(--muted); margin-top: 12px; }
+    .triage-cta-contact a { color: var(--teal); }
+
+    /* Error fallback for analysis */
+    .analysis-fallback {
+      background: var(--bg); border-radius: var(--radius); padding: 20px;
+      font-size: 0.88rem; color: var(--muted); line-height: 1.6; margin-bottom: 0;
+    }
+
+    .disclaimer { font-size: 0.75rem; color: var(--muted); text-align: center; margin-top: 36px; line-height: 1.6; }
+
+    .estimation-note {
+      margin-top: 24px;
+      padding: 14px 16px;
+      background: var(--bg);
+      border-radius: var(--radius);
+      border-left: 3px solid var(--border);
+    }
+    .estimation-note p {
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.6;
+      font-style: italic;
+    }
+
+    /* Honeypot: real users never see this; bots fill it in */
+    .hp-offscreen {
+      position: absolute;
+      left: -9999px;
+      top: -9999px;
+      width: 0;
+      height: 0;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+      tab-size: 0;
+    }
+
+    /* PRINT */
+    @page {
+      margin: 18mm 16mm;
+      size: A4 portrait;
+    }
+
+    @media print {
+      /* Hide interactive and navigation elements */
+      .site-header,
+      .progress-wrap,
+      .step-nav,
+      .results-quote,
+      .lead-capture-card,
+      .thankyou-card,
+      .triage-cta,
+      .audit-offer,
+      .hp-offscreen,
+      .recovery-reflection + .triage-cta { display: none !important; }
+
+      /* Page setup */
+      body { background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .wrapper { max-width: 100%; padding: 0; }
+
+      /* Cards: remove shadows, add light border */
+      .card,
+      .analysis-card,
+      .reflection-card,
+      .recovery-block { box-shadow: none !important; page-break-inside: avoid; }
+      .card { border: 1px solid #d0d0d0; margin-bottom: 14px; }
+
+      /* Force the teal reveal box to print with colour */
+      .total-reveal {
+        background: var(--teal) !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        page-break-inside: avoid;
+      }
+      .total-main-num,
+      .total-recover-num,
+      .total-col-label,
+      .total-context,
+      .total-recovery,
+      .total-eyebrow { position: static; }
+
+      /* Force reflection card colour */
+      .reflection-card {
+        background: #fdf1d0 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        page-break-inside: avoid;
+      }
+
+      /* Recovery reflection: keep visible */
+      .recovery-reflection {
+        display: block !important;
+        page-break-inside: avoid;
+      }
+
+      /* Analysis card: keep visible once shown */
+      .analysis-card { display: block !important; border: 1px solid #d0d0d0; }
+
+      /* Textarea: give it a visible border and height for printed answers */
+      textarea {
+        border: 1px solid #ccc !important;
+        min-height: 48px;
+        resize: none;
+      }
+
+      /* Disclaimer: small footer */
+      .disclaimer { font-size: 0.7rem; color: #888; text-align: center; margin-top: 20px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="site-header">
+    <div class="logo-lockup">
+      <div class="logo-dots" aria-hidden="true">
+        <div class="logo-dot" style="width:11px;height:11px;background:#0b6d61;"></div>
+        <div class="logo-dot" style="width:8px;height:8px;background:#c69519;margin-left:1px;"></div>
+        <div class="logo-dot" style="width:7px;height:7px;background:#7fb3aa;margin-top:2px;"></div>
+        <div class="logo-dot" style="width:9px;height:9px;background:#1e3557;margin-top:-3px;margin-left:2px;"></div>
+      </div>
+      <!-- REPLACE with your actual logo: <img src="YOUR-LOGO.png" alt="Straza Solutions" style="height:38px;"> -->
+      <div class="logo-text">STRAZA SOLUTIONS<span>Culture, Leadership &amp; Well-being</span></div>
+    </div>
+  </header>
+
+  <div class="wrapper">
+
+    <!-- Progress -->
+    <div class="progress-wrap">
+      <div class="progress-steps">
+        <div class="p-step active" id="ps1">
+          <div class="p-num">1</div>
+          <span class="p-label">Your organization</span>
+        </div>
+        <div class="p-connector" id="pc1"></div>
+        <div class="p-step" id="ps2">
+          <div class="p-num">2</div>
+          <span class="p-label">What you're noticing</span>
+        </div>
+        <div class="p-connector" id="pc2"></div>
+        <div class="p-step" id="ps3">
+          <div class="p-num">3</div>
+          <span class="p-label">Your results</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 1 -->
+    <div class="step active" id="step1">
+      <div class="card">
+        <h2 class="step-heading">Let's start with the basics.</h2>
+        <p class="step-sub">These are estimates, not exact numbers. The goal is not precision. It is a clearer picture of what may already be happening inside your organization.</p>
+
+        <div class="prep-note">
+          You can complete this with estimates. Most of what it asks you already know. If you have a rough sense of your <strong>average annual salary</strong>, your <strong>annual revenue</strong>, and any <strong>legal or HR costs from the past year</strong>, those three numbers will make your results more precise. Everything else is something you already carry with you.
+        </div>
+
+        <div class="field">
+          <label for="orgName">Team or organization name <span class="label-note">(optional)</span></label>
+          <input type="text" id="orgName" placeholder="e.g. Operations Team, or leave blank">
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="employees">Number of employees <span style="color:var(--red)">*</span></label>
+            <input type="number" id="employees" min="1" placeholder="e.g. 45">
+          </div>
+          <div class="field">
+            <label for="currency">Currency</label>
+            <select id="currency">
+              <option value="CAD" selected>CAD — Canadian Dollar</option>
+              <option value="USD">USD — US Dollar</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="avgSalary">Average annual salary <span style="color:var(--red)">*</span></label>
+          <div class="input-prefix">
+            <span class="prefix-sym">$</span>
+            <input type="number" id="avgSalary" min="0" placeholder="e.g. 65000">
+          </div>
+          <p class="field-note">Include full-time, part-time, and seasonal staff. A range average is fine.</p>
+        </div>
+
+        <div class="field">
+          <label for="revenue">Annual revenue <span class="label-note">(optional)</span></label>
+          <div class="input-prefix">
+            <span class="prefix-sym">$</span>
+            <input type="number" id="revenue" min="0" placeholder="e.g. 4500000">
+          </div>
+          <p class="field-note">Helps estimate indirect costs more precisely. Leave blank and payroll is used as a proxy instead.</p>
+        </div>
+
+        <p class="err-msg" id="err1">Please enter the number of employees and an average salary before continuing.</p>
+
+        <div class="step-nav">
+          <button class="btn btn-primary" onclick="goTo(2)">Continue</button>
+        </div>
+
+        <div class="estimation-note">
+          <p>The figures this calculator produces are estimates, not a precise accounting of your organization's actual costs. They are built from the information you provide combined with published research averages and industry benchmarks. Real costs in your organization may be higher or lower. This tool is designed to surface patterns and prompt reflection, not to provide financial, legal, or professional advice.</p>
+        </div>
+
+      </div><!-- end .card -->
+    </div><!-- end #step1 -->
+
+    <!-- STEP 2 -->
+    <div class="step" id="step2">
+      <div class="card">
+        <h2 class="step-heading">What have you been noticing?</h2>
+        <p class="step-sub">Move through these at your own pace. If a number is hard to land on, use your best estimate. Pay attention to where you hesitate. That is often the most useful information.</p>
+
+        <p class="section-label">Movement and Absence</p>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="exits">Employees who left in the past year</label>
+            <input type="number" id="exits" min="0" value="0">
+            <p class="field-note">Voluntary and involuntary combined.</p>
+          </div>
+          <div class="field">
+            <label for="hires">New positions filled in the past year</label>
+            <input type="number" id="hires" min="0" value="0">
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="sickDays">Average sick days per person per year</label>
+            <input type="number" id="sickDays" min="0" value="0" placeholder="e.g. 8">
+            <p class="field-note">The Canadian average is roughly 8 to 10 days. The calculator measures only the excess above that baseline.</p>
+          </div>
+          <div class="field">
+            <label for="absentCount">Staff with frequent unplanned absences</label>
+            <input type="number" id="absentCount" min="0" value="0">
+            <p class="field-note">People calling in more than most.</p>
+          </div>
+        </div>
+
+        <p class="section-label">Energy and Capacity</p>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="disengaged">Employees you would describe as disengaged</label>
+            <input type="number" id="disengaged" min="0" value="0">
+            <p class="field-note">Present at work, but not really in it.</p>
+          </div>
+          <div class="field">
+            <label for="overworked">Staff carrying more than their share</label>
+            <input type="number" id="overworked" min="0" value="0">
+            <p class="field-note">The people keeping things moving for everyone else.</p>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Did you use temporary or contract staff to fill gaps this past year?</label>
+          <div class="toggle-wrap">
+            <button type="button" class="toggle-btn active" id="btnNo"  onclick="setTemp(false)">No</button>
+            <button type="button" class="toggle-btn"        id="btnYes" onclick="setTemp(true)">Yes</button>
+          </div>
+          <div class="conditional" id="tempDaysField">
+            <label for="tempDays" style="margin-top:14px;">Approximately how many days of temporary staffing?</label>
+            <input type="number" id="tempDays" min="0" value="0">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="legalCosts">Legal, HR, or settlement costs in the past year</label>
+          <div class="input-prefix">
+            <span class="prefix-sym">$</span>
+            <input type="number" id="legalCosts" min="0" value="0">
+          </div>
+          <p class="field-note">Legal fees, grievances, formal complaints, settlements. Enter 0 if none.</p>
+        </div>
+
+        <p class="section-label">Overall Picture</p>
+        <p style="font-size:0.89rem;color:var(--muted);margin-bottom:14px;line-height:1.55;">Which of these best describes what is happening in your organization right now? This shapes how the indirect costs are estimated.</p>
+
+        <div class="radio-cards">
+          <div class="radio-card">
+            <input type="radio" name="cState" id="rWatch" value="watch">
+            <label for="rWatch">
+              <strong>Watchful</strong>
+              Things are manageable, but early signs are there. Friction is scattered. Attrition is below average. The energy is not quite right.
+            </label>
+          </div>
+          <div class="radio-card">
+            <input type="radio" name="cState" id="rStressed" value="stressed" checked>
+            <label for="rStressed">
+              <strong>Strained</strong>
+              There is a pattern you cannot ignore. Decisions are moving upward. Strong people are compensating. The team is carrying more than it should.
+            </label>
+          </div>
+          <div class="radio-card">
+            <input type="radio" name="cState" id="rCritical" value="critical">
+            <label for="rCritical">
+              <strong>Critical</strong>
+              The costs are becoming visible. People are leaving or checked out. Roles are blurring. Something needs to change soon.
+            </label>
+          </div>
+        </div>
+
+        <div class="step-nav">
+          <button class="btn btn-ghost" onclick="goTo(1)">Back</button>
+          <button class="btn btn-primary" onclick="runCalculation()">See my results</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3: RESULTS -->
+    <div class="step" id="step3">
+
+      <p class="results-quote">
+        "These costs did not happen all at once.<br>
+        They accumulated quietly, the way most of what gets absorbed inside organizations does."
+      </p>
+
+      <!-- Total -->
+      <div class="total-reveal">
+        <div class="bg-circles" aria-hidden="true">
+          <div class="bg-c" style="width:90px;height:90px;background:rgba(255,255,255,0.05);top:-22px;right:60px;"></div>
+          <div class="bg-c" style="width:55px;height:55px;background:rgba(198,149,25,0.28);bottom:18px;right:28px;"></div>
+          <div class="bg-c" style="width:35px;height:35px;background:rgba(255,255,255,0.07);bottom:55px;left:45px;"></div>
+          <div class="bg-c" style="width:65px;height:65px;background:rgba(127,179,170,0.18);top:12px;left:22px;"></div>
+          <div class="bg-c" style="width:20px;height:20px;background:rgba(198,149,25,0.2);top:50%;left:55%;"></div>
+        </div>
+        <p class="total-eyebrow">Estimated Annual Culture Cost</p>
+
+        <div class="totals-grid">
+          <div class="total-col">
+            <p class="total-col-label">Total Estimated Cost</p>
+            <p class="total-main-num" id="totalDisplay">$0</p>
+          </div>
+          <div class="totals-divider"></div>
+          <div class="total-col">
+            <p class="total-col-label">Potentially Recoverable</p>
+            <p class="total-recover-num" id="totalRecoverableDisplay">$0</p>
+          </div>
+        </div>
+
+        <p class="total-name" id="totalOrgName"></p>
+        <p class="total-context" id="totalContext"></p>
+        <p class="total-recovery" id="totalRecovery"></p>
+      </div>
+
+      <!-- Breakdown -->
+      <div class="card">
+        <div class="costs-section-title">Direct Costs: What Shows Up in the Numbers</div>
+        <div class="cost-row">
+          <div><div class="cost-name">Employee Turnover</div><div class="cost-desc">The cost of replacing people who leave, from recruiting and onboarding to the time it takes to get someone productive again.</div></div>
+          <div style="text-align:right;flex-shrink:0;"><div class="cost-amount" id="r-ETC">$0</div><div class="cost-recoverable" id="r-ETC-rec"></div></div>
+        </div>
+        <div class="cost-row">
+          <div><div class="cost-name">Presenteeism</div><div class="cost-desc">People who are at work but not really in it. Often the most underestimated cost in the whole calculation.</div></div>
+          <div style="text-align:right;flex-shrink:0;"><div class="cost-amount" id="r-PC">$0</div><div class="cost-recoverable" id="r-PC-rec"></div></div>
+        </div>
+        <div class="cost-row">
+          <div><div class="cost-name">Absenteeism</div><div class="cost-desc">Unplanned absences above the expected average, including the cost of coverage and overflow onto other staff.</div></div>
+          <div style="text-align:right;flex-shrink:0;"><div class="cost-amount" id="r-AC">$0</div><div class="cost-recoverable" id="r-AC-rec"></div></div>
+        </div>
+        <div class="cost-row">
+          <div><div class="cost-name">Recruitment Costs</div><div class="cost-desc">Advertising, HR time, interview rounds, reference checks, and early onboarding. Estimated at 15% of salary per hire.</div></div>
+          <div style="text-align:right;flex-shrink:0;"><div class="cost-amount" id="r-RC">$0</div><div class="cost-recoverable" id="r-RC-rec"></div></div>
+        </div>
+        <div class="cost-row">
+          <div><div class="cost-name">Temporary Staffing</div><div class="cost-desc">Interim coverage while roles are vacant or understaffed, including typical agency markup.</div></div>
+          <div style="text-align:right;flex-shrink:0;"><div class="cost-amount" id="r-TSC">$0</div><div class="cost-recoverable" id="r-TSC-rec"></div></div>
+        </div>
+        <div class="cost-row">
+          <div><div class="cost-name">Legal and HR Costs</div><div class="cost-desc">Legal fees, grievance settlements, formal complaints, and workplace investigation costs.</div></div>
+          <div style="text-align:right;flex-shrink:0;"><div class="cost-amount" id="r-LC">$0</div><div class="cost-recoverable" id="r-LC-rec"></div></div>
+        </div>
+        <div class="subtotal-row"><span>Direct Cost Subtotal</span><div style="text-align:right"><span id="r-sub1">$0</span><div class="subtotal-recoverable" id="r-sub1-rec"></div></div></div>
+
+        <div class="costs-section-title" style="margin-top:28px;">Indirect Costs: What Does Not Show Up Until It Is Serious</div>
+        <div class="cost-row">
+          <div><div class="cost-name">Decreased Productivity</div><div class="cost-desc">Work that does not happen, decisions that do not get made, service quality that quietly slips.</div></div>
+          <div style="text-align:right;flex-shrink:0;"><div class="cost-amount" id="r-DPC">$0</div><div class="cost-recoverable" id="r-DPC-rec"></div></div>
+        </div>
+        <div class="cost-row">
+          <div><div class="cost-name">Reputation Impact</div><div class="cost-desc">What clients, partners, funders, and potential hires are starting to hear about what it is like to work here.</div><div class="cost-caveat" id="r-DRC-note" style="display:none;">Based on payroll proxy. Enter annual revenue in Step 1 for a more precise figure.</div></div>
+          <div style="text-align:right;flex-shrink:0;"><div class="cost-amount" id="r-DRC">$0</div><div class="cost-recoverable" id="r-DRC-rec"></div></div>
+        </div>
+        <div class="cost-row">
+          <div><div class="cost-name">Loss of Innovation</div><div class="cost-desc">The ideas that do not surface when people do not feel safe enough, or seen enough, to offer them.</div></div>
+          <div style="text-align:right;flex-shrink:0;"><div class="cost-amount" id="r-ILC">$0</div><div class="cost-recoverable" id="r-ILC-rec"></div></div>
+        </div>
+        <div class="cost-row">
+          <div><div class="cost-name">Healthcare and Benefits Load</div><div class="cost-desc">Elevated benefit usage and mental health support costs tied to workplace strain over time.</div></div>
+          <div style="text-align:right;flex-shrink:0;"><div class="cost-amount" id="r-HC">$0</div><div class="cost-recoverable" id="r-HC-rec"></div></div>
+        </div>
+        <div class="cost-row">
+          <div><div class="cost-name">Talent Attraction Premium</div><div class="cost-desc">The additional salary or quality compromise required to fill roles in a strained or difficult culture.</div></div>
+          <div style="text-align:right;flex-shrink:0;"><div class="cost-amount" id="r-ATC">$0</div><div class="cost-recoverable" id="r-ATC-rec"></div></div>
+        </div>
+        <div class="cost-row">
+          <div><div class="cost-name">Burnout Cost</div><div class="cost-desc">The productivity impact of staff who have been carrying too much for too long.</div></div>
+          <div style="text-align:right;flex-shrink:0;"><div class="cost-amount" id="r-BC">$0</div><div class="cost-recoverable" id="r-BC-rec"></div></div>
+        </div>
+        <div class="subtotal-row"><span>Indirect Cost Subtotal</span><div style="text-align:right"><span id="r-sub2">$0</span><div class="subtotal-recoverable" id="r-sub2-rec"></div></div></div>
+
+        <p class="estimate-note">
+          These are directional estimates based on published research and industry-standard formulas, calibrated to your selected culture state: <span id="r-state" class="state-badge stressed">Strained</span><br>
+          They are not precise accounting. They are a way to make invisible costs visible.
+        </p>
+
+        <div class="recovery-block">
+          <p class="recovery-section-label">Estimated recoverable amount</p>
+          <p class="recovery-body" id="recoveryBody"></p>
+          <div class="recovery-amounts">
+            <div class="ra-item">
+              <p class="ra-item-label">Potentially recoverable through culture improvement</p>
+              <p class="ra-item-amount" id="r-recoverable">$0</p>
+            </div>
+            <div class="ra-item">
+              <p class="ra-item-label">Expected even in a healthy organization of this size</p>
+              <p class="ra-item-amount baseline" id="r-baseline">$0</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reflection -->
+      <div class="reflection-card">
+        <p class="reflection-title">Let that number settle before you react.</p>
+        <p class="reflection-intro">If the total feels uncomfortable, that is not a sign something is wrong. It usually means these costs have been absorbed over time rather than seen clearly. The most significant costs are rarely about dramatic failures. They come from quiet patterns that have become normal. You do not need to decide what to do next yet. Simply notice what stands out.</p>
+
+        <div class="reflection-item">
+          <label><span class="r-dot"></span>Which cost surprised you most, and what do you already know about why it is there?</label>
+          <textarea placeholder="Your thoughts..."></textarea>
+        </div>
+        <div class="reflection-item">
+          <label><span class="r-dot"></span>Where did you find yourself hesitating as you filled this in?</label>
+          <textarea placeholder="Your thoughts..."></textarea>
+        </div>
+        <div class="reflection-item">
+          <label><span class="r-dot"></span>Which of your people are compensating most so that work keeps moving?</label>
+          <textarea placeholder="Your thoughts..."></textarea>
+        </div>
+        <div class="reflection-item">
+          <label><span class="r-dot"></span>What would it cost to do nothing for another year?</label>
+          <textarea placeholder="Your thoughts..."></textarea>
+        </div>
+        <div class="reflection-item">
+          <label><span class="r-dot"></span>Where do you want to start, and why does that feel like the right place?</label>
+          <textarea placeholder="Your thoughts..."></textarea>
+        </div>
+        <p class="print-hint">Your answers stay on your screen. Use the Print button below to save this page as a PDF with your reflections included. If you would like a personalized read on what these numbers might mean, enter your name and email below. The analysis will appear on screen and will be part of your saved PDF.</p>
+      </div>
+
+      <!-- LEAD CAPTURE -->
+      <div class="lead-capture-card" id="leadCaptureCard">
+        <p class="lc-title">Want a personalized read on what these numbers might mean?</p>
+        <p class="lc-sub">Enter your details and I will generate a brief analysis of what might be underneath the patterns you are seeing, based on your specific results. It takes about 30 seconds.</p>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="lcFirst">First name <span style="color:var(--red)">*</span></label>
+            <input type="text" id="lcFirst" placeholder="Your first name" maxlength="100" autocomplete="given-name">
+          </div>
+          <div class="field">
+            <label for="lcEmail">Email address <span style="color:var(--red)">*</span></label>
+            <input type="email" id="lcEmail" placeholder="you@yourorganization.com" maxlength="254" autocomplete="email">
+          </div>
+        </div>
+
+        <!-- Honeypot: hidden from real users, bots typically fill this in -->
+        <div class="hp-offscreen" aria-hidden="true">
+          <label for="hp_website">Leave this blank</label>
+          <input type="text" id="hp_website" name="hp_website" tabindex="-1" autocomplete="off">
+        </div>
+
+        <div class="lc-checks">
+          <label class="checkbox-label">
+            <input type="checkbox" id="lcFollowUp" checked>
+            <span>Nicki can reach out to me about my results.</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="lcNewsletter">
+            <span>Add me to the Straza Solutions newsletter for leadership and culture insights.</span>
+          </label>
+        </div>
+
+        <button class="btn btn-primary" id="lcSubmitBtn" onclick="submitLead()">Generate my analysis</button>
+        <p class="err-msg" id="lcErr">Please enter your first name and a valid email address.</p>
+      </div>
+
+      <!-- ANALYSIS CARD (shown after submission) -->
+      <div class="analysis-card" id="analysisCard">
+
+        <!-- Loading state -->
+        <div id="analysisLoading" class="loading-wrap">
+          <p class="loading-label">Preparing a few thoughts on your results...</p>
+          <div class="dots">
+            <div class="dot-pulse"></div>
+            <div class="dot-pulse"></div>
+            <div class="dot-pulse"></div>
+          </div>
+        </div>
+
+        <!-- Content (shown once analysis is ready) -->
+        <div id="analysisContent" style="display:none;">
+          <p class="analysis-intro">
+            <span class="analysis-greeting" id="analysisGreeting"></span><br>
+            Here is a brief read on what your results might be pointing to.
+          </p>
+          <div class="analysis-body" id="analysisText"></div>
+
+          <!-- Recovery reflection: populated when analysis is shown -->
+          <div class="recovery-reflection" id="recoveryReflection" style="display:none;">
+            <p id="recoveryReflectionText"></p>
+          </div>
+
+          <!-- Culture Audit offer: shown when analysis is displayed -->
+          <div class="audit-offer" id="auditOffer" style="display:none;">
+            <p class="audit-offer-label">Go deeper</p>
+            <p class="audit-offer-title">Want to see what is actually happening inside your organization?</p>
+            <p class="audit-offer-body">The Culture Audit is a short diagnostic that helps you see how culture is currently being experienced, not how it is intended, but how it shows up day to day. It looks at ten conditions including trust, communication, psychological safety, decision-making, ownership, accountability, feedback, workload, and leadership alignment. It takes about ten minutes and tends to surface things the numbers alone cannot show.</p>
+            <!--
+              NICKI: Replace the href below with the URL where people can access your Culture Audit.
+              This could be a download page, a form link, or a page on your website.
+            -->
+            <a href="https://mailchi.mp/ef70ed2912db/culture-audit" target="_blank" class="btn btn-primary">Access the Culture Audit</a>
+          </div>
+
+          <div class="triage-cta">
+            <p class="triage-cta-title">This is the kind of thing worth talking through.</p>
+            <p class="triage-cta-body">If something in this landed, I offer a free 30-minute triage call to help you make sense of what you are seeing and figure out where to start. No agenda, no pitch. Just a chance to think out loud together.</p>
+            <!--
+              NICKI: Replace the href below with your actual booking page URL.
+            -->
+            <a href="https://calendly.com/nickistraza/30-minute-triage-call" target="_blank" class="btn btn-gold">Book a Free Triage Call</a>
+            <p class="triage-cta-contact">
+              <a href="mailto:nickistraza@strazasolutions.com">nickistraza@strazasolutions.com</a>
+              &nbsp;|&nbsp;
+              <a href="https://www.strazasolutions.com" target="_blank">strazasolutions.com</a>
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="step-nav">
+        <button class="btn btn-ghost" onclick="goTo(2)">Back to my inputs</button>
+        <button class="btn btn-ghost" onclick="window.print()">Print / Save as PDF</button>
+      </div>
+
+      <p class="disclaimer">Culture Cost Calculator &nbsp;|&nbsp; &copy; 2024 Straza Solutions Inc. &nbsp;|&nbsp; www.strazasolutions.com<br>
+      The figures produced by this calculator are estimates based on user-provided inputs and published research averages. They are not a precise accounting of your organization's actual costs, and real costs may be higher or lower. This tool is intended to surface patterns and prompt reflection. It does not constitute financial, legal, or professional advice.</p>
+
+    </div><!-- end step 3 -->
+
+  </div><!-- end .wrapper -->
+
+
+  <script>
+    /*
+    ═══════════════════════════════════════════════════════
+    SETUP: Replace the values below before going live.
+    Search for REPLACE_ME to find each one.
+
+    EMAILJS (free at emailjs.com, 200 emails/month):
+      REPLACE_ME_PUBLIC_KEY     — Account > API Keys in EmailJS dashboard
+      REPLACE_ME_SERVICE_ID     — Email Services tab (e.g. "service_abc123")
+      REPLACE_ME_NICKI_TEMPLATE — Template ID for your notification email
+
+    MAILCHIMP (only needed if someone ticks the newsletter box):
+      In Mailchimp: Audience > Signup forms > Embedded forms
+      Look at the form action URL for the three values below.
+      REPLACE_ME_MC_SERVER  — e.g. "us14" (the subdomain in the URL)
+      REPLACE_ME_MC_U       — the "u=" parameter value
+      REPLACE_ME_MC_ID      — the "id=" parameter value
+
+    Also update the booking link in the triage CTA above.
+    ═══════════════════════════════════════════════════════
+    */
+
+    (function() {
+      emailjs.init({ publicKey: 'dTNEoks0yPRlH4UBy' });
+    })();
+
+    const EMAILJS_SERVICE_ID     = 'service_h7653m6';
+    const EMAILJS_NICKI_TEMPLATE = 'template_bsye3qi';
+
+    /* ── State ─────────────────────────────────────── */
+    let useTempStaff   = false;
+    let currentResults = {};
+
+    /* Security state */
+    let hasSubmitted  = false;       // one-time flag: prevent re-submission after success
+    let lastSubmitAt  = null;        // cooldown: timestamp of last submission attempt
+    let formShownAt   = null;        // timing: when the lead form first became visible
+    const COOLDOWN_MS = 60000;       // 60-second cooldown between submissions
+    const MIN_TIME_MS = 2000;        // reject submissions faster than 2 seconds (bot signal)
+
+    function setTemp(val) {
+      useTempStaff = val;
+      document.getElementById('btnYes').classList.toggle('active',  val);
+      document.getElementById('btnNo' ).classList.toggle('active', !val);
+      document.getElementById('tempDaysField').classList.toggle('visible', val);
+    }
+
+    function isValidEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+
+    /* Sanitize text before inserting into innerHTML.
+       Escapes HTML entities to prevent XSS from unexpected API response content. */
+    function sanitizeText(str) {
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    /* ── Navigation ────────────────────────────────── */
+    function goTo(step) {
+      if (step === 2) {
+        const emp = parseFloat(document.getElementById('employees').value);
+        const sal = parseFloat(document.getElementById('avgSalary').value);
+        if (!emp || !sal || emp < 1 || sal < 1) {
+          document.getElementById('err1').classList.add('visible');
+          document.getElementById('employees').classList.toggle('has-error', !emp || emp < 1);
+          document.getElementById('avgSalary').classList.toggle('has-error', !sal || sal < 1);
+          return;
+        }
+        document.getElementById('err1').classList.remove('visible');
+        document.getElementById('employees').classList.remove('has-error');
+        document.getElementById('avgSalary').classList.remove('has-error');
+      }
+      for (let i = 1; i <= 3; i++) {
+        document.getElementById('step' + i).classList.remove('active');
+        const ps = document.getElementById('ps' + i);
+        ps.classList.remove('active', 'done');
+        if (i < step) ps.classList.add('done');
+        if (i === step) { document.getElementById('step' + i).classList.add('active'); ps.classList.add('active'); }
+      }
+      document.getElementById('pc1').classList.toggle('filled', step >= 2);
+      document.getElementById('pc2').classList.toggle('filled', step >= 3);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* ── Calculation rates ─────────────────────────── */
+    const RATES = {
+      watch:    { attritionMult: 0.30, presentMult: 0.10, sickUplift: 1.0, dpcRate: 0.030, drcRate: 0.005, ilcMult: 0.005, hcRate: 0.020, bcMult: 0.15, atcPrem: 0.05 },
+      stressed: { attritionMult: 0.50, presentMult: 0.18, sickUplift: 1.2, dpcRate: 0.055, drcRate: 0.015, ilcMult: 0.010, hcRate: 0.035, bcMult: 0.25, atcPrem: 0.10 },
+      critical: { attritionMult: 0.75, presentMult: 0.28, sickUplift: 1.5, dpcRate: 0.100, drcRate: 0.025, ilcMult: 0.020, hcRate: 0.050, bcMult: 0.35, atcPrem: 0.15 }
+    };
+    const STATE_LABELS = { watch: 'Watchful', stressed: 'Strained', critical: 'Critical' };
+
+    function fmt(n, curr) {
+      return new Intl.NumberFormat(curr === 'USD' ? 'en-US' : 'en-CA', {
+        style: 'currency', currency: curr, maximumFractionDigits: 0
+      }).format(Math.round(n));
+    }
+
+    /* ── Calculation ───────────────────────────────── */
+    function runCalculation() {
+      const employees   = parseInt(document.getElementById('employees').value)    || 0;
+      const salary      = parseFloat(document.getElementById('avgSalary').value)  || 0;
+      const currency    = document.getElementById('currency').value;
+      const revenue     = parseFloat(document.getElementById('revenue').value)    || 0;
+      const exits       = parseInt(document.getElementById('exits').value)        || 0;
+      const hires       = parseInt(document.getElementById('hires').value)        || 0;
+      const sickDays    = parseFloat(document.getElementById('sickDays').value)   || 0;
+      const absentCount = parseInt(document.getElementById('absentCount').value)  || 0;
+      const disengaged  = parseInt(document.getElementById('disengaged').value)   || 0;
+      const overworked  = parseInt(document.getElementById('overworked').value)   || 0;
+      const tempDays    = useTempStaff ? (parseInt(document.getElementById('tempDays').value) || 0) : 0;
+      const legalCosts  = parseFloat(document.getElementById('legalCosts').value) || 0;
+      const state       = document.querySelector('input[name="cState"]:checked')?.value || 'stressed';
+
+      const r       = RATES[state];
+      const payroll = employees * salary;
+      const daily   = salary / 260;
+      const exSick  = Math.max(0, sickDays - 8);
+      const proxy   = revenue > 0 ? revenue : payroll;
+
+      const ETC = exits       * salary  * r.attritionMult;
+      const PC  = disengaged  * salary  * r.presentMult;
+      const AC  = exSick      * daily   * absentCount    * r.sickUplift;
+      const RC  = hires       * salary  * 0.15;
+      const TSC = tempDays    * daily   * 1.50;
+      const LC  = legalCosts;
+
+      const hasRevenue = revenue > 0;
+      const DPC = proxy * r.dpcRate;
+      // DRC: use full rate against actual revenue; halve it when falling back to payroll proxy
+      // since payroll is not a reliable stand-in for revenue-at-risk from reputation damage.
+      const DRC = hasRevenue
+        ? revenue  * r.drcRate
+        : payroll  * r.drcRate * 0.5;
+      const ILC = payroll * r.ilcMult;
+      const HC  = payroll * r.hcRate;
+      const ATC = hires   * salary * r.atcPrem;
+      const BC  = overworked * salary  * r.bcMult;
+
+      const sub1  = ETC + PC + AC + RC + TSC + LC;
+      const sub2  = DPC + DRC + ILC + HC + ATC + BC;
+      const total = sub1 + sub2;
+      const org   = document.getElementById('orgName').value.trim() || 'Your organization';
+
+      /*
+        Cultural Recovery Factor (CRF):
+        The estimated proportion of calculated costs that sit above what a
+        well-functioning organization of this size would normally incur.
+        Derived from Gallup engagement benchmarks (41% lower absenteeism,
+        59% lower turnover in top-quartile organizations) and the Abe Brown
+        case study (25% absenteeism reduction, 40% revenue gain through
+        culture improvement). These are conservative estimates.
+
+        Watchful  — 20% recoverable (80% is normal operating cost)
+        Strained  — 35% recoverable (65% is normal operating cost)
+        Critical  — 50% recoverable (50% is normal operating cost)
+      */
+      const CRF         = { watch: 0.20, stressed: 0.35, critical: 0.50 }[state];
+      const recoverable = total * CRF;
+      const baseline    = total - recoverable;
+      const crfPct      = Math.round(CRF * 100);
+
+      currentResults = {
+        orgName: org, employees, salary: fmt(salary, currency),
+        currency, stateLabel: STATE_LABELS[state], state,
+        total: fmt(total, currency), sub1: fmt(sub1, currency), sub2: fmt(sub2, currency),
+        ETC: fmt(ETC, currency), PC: fmt(PC, currency), AC: fmt(AC, currency),
+        RC:  fmt(RC,  currency), TSC: fmt(TSC, currency), LC: fmt(LC, currency),
+        DPC: fmt(DPC, currency), DRC: fmt(DRC, currency), ILC: fmt(ILC, currency),
+        HC:  fmt(HC,  currency), ATC: fmt(ATC, currency), BC:  fmt(BC,  currency),
+        recoverable: fmt(recoverable, currency),
+        baseline:    fmt(baseline,    currency),
+        crfPct,
+        exits, hires, disengaged, overworked, absentCount, sickDays, tempDays,
+        legalRaw: legalCosts
+      };
+
+      const $ = id => document.getElementById(id);
+
+      /* Cost amounts */
+      $('r-ETC').textContent  = fmt(ETC,  currency);
+      $('r-PC' ).textContent  = fmt(PC,   currency);
+      $('r-AC' ).textContent  = fmt(AC,   currency);
+      $('r-RC' ).textContent  = fmt(RC,   currency);
+      $('r-TSC').textContent  = fmt(TSC,  currency);
+      $('r-LC' ).textContent  = fmt(LC,   currency);
+      $('r-sub1').textContent = fmt(sub1, currency);
+      $('r-DPC').textContent  = fmt(DPC,  currency);
+      $('r-DRC').textContent  = fmt(DRC,  currency);
+      $('r-ILC').textContent  = fmt(ILC,  currency);
+      $('r-HC' ).textContent  = fmt(HC,   currency);
+      $('r-ATC').textContent  = fmt(ATC,  currency);
+      $('r-BC' ).textContent  = fmt(BC,   currency);
+      $('r-sub2').textContent = fmt(sub2, currency);
+
+      /* Per-item recoverable amounts */
+      const recLabel = '\u00a0recoverable';
+      const items = { ETC, PC, AC, RC, TSC, LC, DPC, DRC, ILC, HC, ATC, BC };
+      for (const [key, val] of Object.entries(items)) {
+        const el = $('r-' + key + '-rec');
+        if (el) el.textContent = fmt(val * CRF, currency) + recLabel;
+      }
+      const sub1RecEl = $('r-sub1-rec');
+      const sub2RecEl = $('r-sub2-rec');
+      if (sub1RecEl) sub1RecEl.textContent = fmt(sub1 * CRF, currency) + recLabel;
+      if (sub2RecEl) sub2RecEl.textContent = fmt(sub2 * CRF, currency) + recLabel;
+
+      /* DRC caveat: show when estimate is based on payroll proxy, not actual revenue */
+      const drcNote = $('r-DRC-note');
+      if (drcNote) drcNote.style.display = hasRevenue ? 'none' : 'block';
+
+      /* Recovery amounts */
+      $('r-recoverable').textContent = fmt(recoverable, currency);
+      $('r-baseline').textContent    = fmt(baseline,    currency);
+      $('recoveryBody').textContent  =
+        'Not every dollar in this total is a culture problem. Healthy organizations have real costs too — for turnover, recruitment, sick leave, and benefits. Based on research benchmarks and a ' +
+        STATE_LABELS[state].toLowerCase() + ' culture state, approximately ' + crfPct +
+        '% of these costs sit above what you would expect in a well-functioning organization of this size. That is the portion where culture improvement has the most realistic chance of making a difference.';
+      $('totalRecovery').innerHTML =
+        'Of this, an estimated <strong>' + fmt(recoverable, currency) +
+        '</strong> may be recoverable through culture improvement. If you could reduce this number by ' + crfPct + '%, what would that make possible for you?';
+
+      const badge = $('r-state');
+      badge.textContent = STATE_LABELS[state];
+      badge.className   = 'state-badge ' + state;
+      $('totalOrgName').textContent = org;
+      $('totalContext').textContent = employees + ' employees \u00b7 ' + STATE_LABELS[state] + ' culture state \u00b7 ' + currency;
+
+      animateTotal(total, currency);
+      animateRecoverable(recoverable, currency);
+      goTo(3);
+      formShownAt = Date.now(); // start timing from when the form becomes visible
+    }
+
+    function animateTotal(target, currency) {
+      const el = document.getElementById('totalDisplay');
+      const start = performance.now(), dur = 1100;
+      function tick(now) {
+        const t = Math.min((now - start) / dur, 1);
+        el.textContent = fmt(target * (1 - Math.pow(1 - t, 3)), currency);
+        if (t < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }
+
+    function animateRecoverable(target, currency) {
+      const el = document.getElementById('totalRecoverableDisplay');
+      if (!el) return;
+      const start = performance.now(), dur = 1300; /* slightly longer for staggered feel */
+      function tick(now) {
+        const t = Math.min((now - start) / dur, 1);
+        el.textContent = fmt(target * (1 - Math.pow(1 - t, 3)), currency);
+        if (t < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }
+
+    /* ── Lead Submission + AI Analysis ─────────────── */
+    async function submitLead() {
+      const firstName  = document.getElementById('lcFirst').value.trim();
+      const email      = document.getElementById('lcEmail').value.trim();
+      const canContact = document.getElementById('lcFollowUp').checked;
+      const newsletter = document.getElementById('lcNewsletter').checked;
+      const errEl      = document.getElementById('lcErr');
+      const btn        = document.getElementById('lcSubmitBtn');
+
+      /* One-time flag: prevent re-submission after a successful send */
+      if (hasSubmitted) return;
+
+      /* Cooldown: prevent rapid repeat submissions */
+      if (lastSubmitAt && (Date.now() - lastSubmitAt) < COOLDOWN_MS) {
+        errEl.textContent = 'Please wait a moment before trying again.';
+        errEl.classList.add('visible');
+        return;
+      }
+
+      /* Minimum time: reject submissions completed unrealistically quickly */
+      if (formShownAt && (Date.now() - formShownAt) < MIN_TIME_MS) {
+        showFakeSuccess(firstName);
+        return;
+      }
+
+      if (!firstName || !isValidEmail(email)) {
+        errEl.classList.add('visible');
+        return;
+      }
+      errEl.classList.remove('visible');
+
+      // Honeypot check: if this hidden field has any content, it is almost certainly a bot.
+      // Silently show a convincing success state without sending anything.
+      const hp = document.getElementById('hp_website');
+      if (hp && hp.value.trim()) {
+        showFakeSuccess(firstName);
+        return;
+      }
+      btn.textContent = 'Working...';
+      btn.disabled    = true;
+
+      // Hide lead form, show analysis card with loading state
+      document.getElementById('leadCaptureCard').style.display = 'none';
+      const analysisCard = document.getElementById('analysisCard');
+      analysisCard.classList.add('visible');
+      document.getElementById('analysisLoading').style.display = 'block';
+      document.getElementById('analysisContent').style.display = 'none';
+      window.scrollTo({ top: analysisCard.offsetTop - 24, behavior: 'smooth' });
+
+      // Generate AI analysis
+      let analysisText = '';
+      try {
+        analysisText = await generateAnalysis(currentResults, firstName);
+      } catch (err) {
+        // Log a generic message only — do not expose error details or personal data
+        console.warn('Analysis unavailable.');
+        analysisText = null;
+      }
+
+      // Send notification to Nicki (with or without analysis)
+      try {
+        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_NICKI_TEMPLATE, {
+          lead_name:    firstName,
+          lead_email:   email,
+          can_contact:  canContact ? 'Yes' : 'No',
+          org_name:     currentResults.orgName,
+          employees:    currentResults.employees,
+          culture_state:currentResults.stateLabel,
+          currency:     currentResults.currency,
+          total:        currentResults.total,
+          sub1:         currentResults.sub1,
+          sub2:         currentResults.sub2,
+          etc: currentResults.ETC, pc:  currentResults.PC,  ac:  currentResults.AC,
+          rc:  currentResults.RC,  tsc: currentResults.TSC, lc:  currentResults.LC,
+          dpc: currentResults.DPC, drc: currentResults.DRC, ilc: currentResults.ILC,
+          hc:  currentResults.HC,  atc: currentResults.ATC, bc:  currentResults.BC,
+          ai_analysis: analysisText || '(Analysis unavailable)'
+        });
+      } catch (err) {
+        // Suppress error details — notification failure should not surface to the visitor
+        console.warn('Notification unavailable.');
+      }
+
+      // Mark as successfully submitted — prevents cooldown bypass and re-submission
+      hasSubmitted = true;
+      lastSubmitAt = Date.now();
+
+      // Mailchimp subscribe if opted in
+      if (newsletter) { subscribeToMailchimp(email, firstName); }
+
+      // Show analysis on screen
+      // AI response is sanitized before insertion to prevent any unexpected HTML from the API
+      document.getElementById('analysisGreeting').textContent = 'Hi ' + firstName + '.';
+      const bodyEl = document.getElementById('analysisText');
+      if (analysisText) {
+        bodyEl.innerHTML = analysisText
+          .split('\n\n')
+          .filter(p => p.trim())
+          .map(p => '<p>' + sanitizeText(p.trim()) + '</p>')
+          .join('');
+      } else {
+        bodyEl.innerHTML = '<div class="analysis-fallback">The analysis could not be generated right now. Please reach out directly and I would be glad to talk through what these numbers might mean for your organization.</div>';
+      }
+
+      document.getElementById('analysisLoading').style.display = 'none';
+      document.getElementById('analysisContent').style.display = 'block';
+
+      /* Recovery reflection callout */
+      const reflEl   = document.getElementById('recoveryReflection');
+      const reflText = document.getElementById('recoveryReflectionText');
+      if (reflEl && reflText && currentResults.recoverable) {
+        const orgLabel = currentResults.orgName && currentResults.orgName !== 'Your organization'
+          ? currentResults.orgName : 'your organization';
+        reflText.textContent =
+          'If ' + orgLabel + ' could recover ' + currentResults.crfPct +
+          '% of these costs \u2014 approximately ' + currentResults.recoverable +
+          ' \u2014 what would that make possible?';
+        reflEl.style.display = 'block';
+      }
+
+      /* Culture Audit offer */
+      const auditEl = document.getElementById('auditOffer');
+      if (auditEl) auditEl.style.display = 'block';
+    }
+
+    /* ── Fake success (honeypot trap) ───────────────── */
+    function showFakeSuccess(firstName) {
+      document.getElementById('leadCaptureCard').style.display = 'none';
+      const card = document.getElementById('analysisCard');
+      card.classList.add('visible');
+      document.getElementById('analysisLoading').style.display = 'none';
+      const content = document.getElementById('analysisContent');
+      content.style.display = 'block';
+      document.getElementById('analysisGreeting').textContent = 'Hi ' + (firstName || 'there') + '.';
+      document.getElementById('analysisText').innerHTML =
+        '<p>Thank you for completing the Culture Cost Calculator. Your results have been noted.</p>';
+    }
+
+    /* ── AI Analysis via Anthropic API ─────────────── */
+    async function generateAnalysis(r, firstName) {
+
+      /*
+        SYSTEM PROMPT: Built from Straza Solutions IP.
+        Draws on: From Conflict to Collaboration (generational dynamics),
+        Culture Audit (conditions over people), C.L.E.A.R. Commitment Process
+        (retention as a conversation problem), and generational diversity research.
+        Do not remove or simplify — this is what makes the analysis specific to this work.
+      */
+      const systemPrompt = `You are writing a brief, warm analysis of workplace culture cost data on behalf of a culture and leadership practitioner who works with organizations navigating generational complexity, leadership transitions, and cultural strain.
+
+Your core belief: these costs are rarely about people not caring. They are almost always about conditions — the systems, expectations, and signals that people are responding to. Most workplace dysfunction develops unintentionally, especially in growing or multigenerational organizations.
+
+YOUR UNDERSTANDING OF WHAT DRIVES EACH COST:
+
+Employee Turnover: People rarely leave for the reason they state. Underneath most exits is one of a few patterns: they felt unclear about what was actually expected of them in day-to-day practice, they hit obstacles nobody helped them navigate, they felt like their supervisor did not really know them, or they were afraid to ask questions because the environment communicated that questions were a sign of weakness. In multigenerational organizations, turnover is often rooted in mismatched definitions of loyalty. Older generations may equate loyalty with longevity and institutional commitment. Younger generations equate it with value alignment and feeling seen. When those definitions operate in silence, people leave without saying why.
+
+Presenteeism: Often the most underestimated cost because it is invisible until it is significant. People who are physically present but not genuinely engaged have usually stopped believing their contribution is noticed, or do not feel psychologically safe enough to bring their full selves to the work. This frequently appears at generational intersection points — where one person has learned to suppress rather than express, or where feedback is not arriving in a form the person can hear or receive.
+
+Absenteeism and Healthcare Costs: These tend to track together and often reflect a pace of work that has not been examined in a long time. When the emotional environment is not sustainable, the body keeps score. Elevated sick leave and benefits usage frequently appear alongside workloads that rely on individual effort rather than clear systems, realistic capacity, and genuine support structures.
+
+Recruitment Costs: A revolving door is almost always a clarity and conversation problem. New people arrive with energy and hope. What happens in the first weeks either builds on that energy or quietly drains it. When recruitment costs stay high, it is often because the conditions that made the previous person feel unclear or unsupported are still in place for the next hire.
+
+Talent Attraction Premium: When an organization has to pay more to attract people, or settles for less qualified candidates, it is usually because word has spread — not always loudly, but through networks and reputation — about what it is like to work there. Culture is not invisible to the outside.
+
+Burnout Cost: The signature cost of a culture where strong people compensate for unclear systems. When a few people are carrying far more than their share, the capacity on display is borrowed, not built. That debt comes due in turnover, health costs, and the quiet erosion of the people who were holding things together.
+
+Temporary Staffing: A signal worth noticing on its own. Temporary coverage is expensive and disruptive, but the more important question is what it reveals about where the system is fragile or over-reliant on specific people.
+
+Legal and HR Costs: Often the most visible signal of a breakdown in psychological safety — a culture where concerns were not raised early because it did not feel safe to do so, until something escalated.
+
+Decreased Productivity and Loss of Innovation: These indirect costs signal that team energy is being consumed by friction management rather than forward movement. Innovation loss tends to begin quietly, when people stop offering ideas they are not sure will land well. In a multigenerational team, this often connects to different expectations about how ideas should be raised, heard, and valued.
+
+MEANINGFUL PATTERNS TO WATCH FOR:
+
+When turnover, burnout, and presenteeism appear together as significant costs, the pattern often points to strong people compensating for unclear systems. They absorb what the system does not hold. They keep things moving. They stay quieter than they should. Eventually they leave or burn out, and the organization is surprised.
+
+When high recruitment costs appear alongside a significant talent attraction premium, the conditions that drove people out have likely not changed between hires. The revolving door is telling the same story each time it turns.
+
+When absenteeism and healthcare costs are both elevated, there is usually a pace of work that has not been honestly assessed in a while, and often a gap between what is formally expected and what is actually being asked.
+
+When decision-making stalls or escalates more than it should, it is rarely about capability. It is about whether people feel they have genuine ownership and the safety to act on it. People step up without being pushed when they are clear on what is theirs to own and confident their decisions will be supported.
+
+THE 13 CONDITIONS THAT SHAPE WHETHER PEOPLE CAN DO THEIR BEST WORK:
+
+Research from the Canadian standard for psychological health and safety identifies 13 conditions that determine whether a workplace allows people to thrive. When you see elevated costs in a set of results, these conditions are worth holding as possible contributing factors. They are listed here in plain language.
+
+1. Psychological support — Do people feel safe bringing a struggle to their supervisor before it becomes a crisis? Where this is missing: more absenteeism, more conflict, more burnout, higher turnover.
+2. Consistency between words and actions — Do leaders follow through on what they say? Where missing: trust erodes and even well-designed programs lose their power.
+3. Clear expectations — Do people know what is expected of them and how their work connects to something larger? Where missing: lower morale, more sick leave, and burnout that shows up first in the leaders themselves.
+4. Civility and respect — Are people treated with basic consideration, even in hard conversations? Where missing: emotional exhaustion, more conflict, and real legal exposure.
+5. Fit between people and their roles — Do people have both the skill and the emotional capacity the role actually requires? Where missing: strain, disengagement, poor performance, and voluntary turnover.
+6. Room to grow — Are people learning and developing, not just executing? Where missing: boredom, disengagement, and a quiet decline in performance that is easy to misread as a motivation problem.
+7. Recognition — Is effort noticed and appreciated fairly and in a timely way? Where missing: people disengage or leave. Unrewarded effort is one of the strongest predictors of burnout.
+8. A voice in decisions — Do people have real input into how their work gets done? Where missing: helplessness, cynicism, and higher turnover.
+9. Manageable workload — Can the work realistically get done in the time available? Where missing: fatigue, a diminished sense of accomplishment, and one of the top reasons people sour on their employer.
+10. Genuine engagement — Do people feel connected to their work, not just present for it? Where missing: productivity losses, higher turnover, and quiet withdrawal of effort.
+11. Balance — Is there room for life outside of work? Where missing: constant fatigue, short tempers, and costs that surface later as benefit claims, absenteeism, and disability leave.
+12. Psychological safety to speak up — Can someone flag a mistake or raise a concern without fearing it will cost them? Where missing: people go quiet, disengage, and the organization loses the early warning signs it needed.
+13. Physical safety — Do people feel genuinely protected in their work environment? Where missing: distress and disengagement rise even when nothing has physically happened yet, because uncertainty itself is the strain.
+
+RESEARCH CONTEXT TO HOLD WHEN INTERPRETING RESULTS:
+
+Mental health challenges account for 35 to 45 percent of workplace absenteeism in developed countries. In Canada, 30 to 50 percent of long-term disability claims relate to mental health, and once someone has been off work for three months for mental health reasons, the absence is likely to stretch past a year. This means the healthcare and absenteeism costs in a calculator result often represent the surface of something that has been building far longer.
+
+Only about 17 percent of adults are genuinely flourishing at any given time. The rest are somewhere between managing and quietly struggling. People who are languishing — not visibly unwell, just not thriving — are the ones most likely to develop real anxiety or depression over the following decade. Languishing shows up at work as reduced focus, lower motivation, and a much higher chance someone quietly cuts back their effort or contribution long before they raise a concern or hand in notice.
+
+In one documented workplace case study, shifting the conditions of psychological health and safety — without changing the product, the market, or the sales approach — produced a 40 percent revenue increase, a 30 percent profit increase, and a 25 percent drop in absenteeism within a single year, during a recession. The conditions were the variable. This is useful context when a leader is looking at a cost number and wondering whether change is actually possible.
+
+YOUR APPROACH:
+Open the analysis by orienting the leader to both numbers: the total estimated cost and the recoverable portion. Do this in the first paragraph, naturally, not as a formula. The recoverable amount is the more meaningful number for this leader right now. It represents what sits above what a well-functioning organization of their size would normally incur. Name it plainly and give it weight. For example, you might say something like: for an organization of this size, a total in this range reflects real accumulated strain. The part worth focusing on is the portion that sits above what you would expect in a healthy workplace and what culture improvement has the most realistic chance of returning. Then move into what the patterns suggest. Offer the leader a possibility, not a verdict. If a meaningful pattern exists across areas, name it plainly. Do not prescribe. Do not list action steps. Do not name frameworks or proprietary tools. Do not end with the reflection question about what recovery would make possible, as that appears separately in the report. The goal is for the leader to feel genuinely seen, and to see their organization more clearly.
+
+CLOSING WITH ONE QUESTION:
+After the main analysis paragraphs, close with a brief final paragraph that offers the leader one question they could bring to a key person in their organization this week. This is not a task. It is a single, genuinely curious invitation. Frame it as something like "One conversation worth having soon" or "A question worth bringing to someone you trust." Choose the question based on what the specific numbers are pointing to. If burnout and overwork patterns are prominent, the question might invite understanding of what people are quietly carrying. If turnover is the standout number, it might invite reflection on what makes staying feel worth it. If disengagement or presenteeism is high, it might open a door to what people are not saying out loud. If ownership and decision-making seem to be stalling, it might surface what people are waiting for permission to do. The question should feel like something a thoughtful, curious colleague would ask naturally. It is not from a coaching manual. It is the kind of thing that opens a real conversation.
+
+VOICE:
+Warm, grounded, and human. Not clinical or consultant-like. Plain language. No jargon. No framework names. No em dashes. No bullet points in the response. Canadian spelling. Address the leader directly as "you" and "your." Do not start sentences with "And" or "But." Do not mention any practitioner or consultant by name. Write 4 to 5 short paragraphs, under 280 words total. The final paragraph is the closing question.`;
+
+      const userPrompt = [
+        'Here are the results from a Culture Cost Calculator completed for an organization.',
+        '',
+        'Organization: ' + r.orgName,
+        'Number of employees: ' + r.employees,
+        'Culture state selected: ' + r.stateLabel,
+        '',
+        'Estimated annual culture cost: ' + r.total,
+        'Potentially recoverable through culture improvement (' + r.crfPct + '% of total): ' + r.recoverable,
+        'Expected even in a healthy organization of this size: ' + r.baseline,
+        'Direct costs subtotal: ' + r.sub1,
+        'Indirect costs subtotal: ' + r.sub2,
+        '',
+        'Direct cost breakdown:',
+        '  Employee Turnover: ' + r.ETC,
+        '  Presenteeism: ' + r.PC,
+        '  Absenteeism: ' + r.AC,
+        '  Recruitment: ' + r.RC,
+        '  Temporary Staffing: ' + r.TSC,
+        '  Legal and HR: ' + r.LC,
+        '',
+        'Indirect cost breakdown:',
+        '  Decreased Productivity: ' + r.DPC,
+        '  Reputation Impact: ' + r.DRC,
+        '  Loss of Innovation: ' + r.ILC,
+        '  Healthcare and Benefits: ' + r.HC,
+        '  Talent Attraction Premium: ' + r.ATC,
+        '  Burnout Cost: ' + r.BC,
+        '',
+        'Please write the analysis now, using the guidance in your system prompt.'
+      ].join('\n');
+
+      const response = await fetch('/.netlify/functions/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system: systemPrompt,
+          userPrompt: userPrompt
+        })
+      });
+
+      if (!response.ok) throw new Error('API error ' + response.status);
+      const data = await response.json();
+      return data.content[0].text;
+    }
+
+    /* ── Mailchimp JSONP Subscribe ──────────────────── */
+    function subscribeToMailchimp(email, firstName) {
+      const cb = 'mc_cb_' + Date.now();
+      const params = new URLSearchParams({
+        u: 'bebd41c6246b91fd9a62aae3a', id: '4c288a4b41',
+        EMAIL: email, FNAME: firstName, c: cb
+      });
+      window[cb] = function() {
+        document.getElementById('_mc_s')?.remove();
+        delete window[cb];
+      };
+      const s = document.createElement('script');
+      s.id  = '_mc_s';
+      s.src = 'https://us21.list-manage.com/subscribe/post-json?' + params;
+      document.body.appendChild(s);
+    }
+  </script>
+</body>
+</html>
