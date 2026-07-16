@@ -1593,16 +1593,27 @@ Warm, grounded, and human. Not clinical or consultant-like. Plain language. No j
       return data.content[0].text;
     }
 
-    /* ── Mailchimp Subscribe (via Netlify function, so it can be tagged) ── */
+    /* ── Mailchimp JSONP Subscribe (using the real embedded-form endpoint, tagged) ── */
     function subscribeToMailchimp(email, firstName) {
-      fetch('/.netlify/functions/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email, firstName: firstName })
-      }).catch(function() {
-        // Suppress error details — a Mailchimp hiccup should not surface to the visitor
-        console.warn('Mailchimp subscribe unavailable.');
+      const cb = 'mc_cb_' + Date.now();
+      const params = new URLSearchParams({
+        u: 'bebd41c6246b91fd9a62aae3a',
+        id: '4c288a4b41',
+        f_id: '0080a0e6f0',
+        EMAIL: email,
+        FNAME: firstName,
+        tags: '3711386', // "Culture Cost Calculator Website"
+        'b_bebd41c6246b91fd9a62aae3a_4c288a4b41': '', // honeypot field Mailchimp expects present and empty
+        c: cb
       });
+      window[cb] = function() {
+        document.getElementById('_mc_s')?.remove();
+        delete window[cb];
+      };
+      const s = document.createElement('script');
+      s.id  = '_mc_s';
+      s.src = 'https://nickistraza.us21.list-manage.com/subscribe/post-json?' + params;
+      document.body.appendChild(s);
     }
   </script>
 </body>
