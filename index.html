@@ -565,6 +565,15 @@
       .recovery-block { box-shadow: none !important; page-break-inside: avoid; }
       .card { border: 1px solid #d0d0d0; margin-bottom: 14px; }
 
+      /* The combined direct + indirect costs card is taller than one page.
+         Let it flow across pages instead of being pushed whole onto the next one,
+         which is what was leaving the front page mostly empty. */
+      .card.costs-card { page-break-inside: auto; }
+      .costs-card .cost-row,
+      .costs-card .subtotal-row,
+      .costs-card .costs-section-title { page-break-inside: avoid; }
+      .costs-card .costs-section-title { page-break-after: avoid; }
+
       /* Force the teal reveal box to print with colour */
       .total-reveal {
         background: var(--teal) !important;
@@ -846,7 +855,7 @@
       </div>
 
       <!-- Breakdown -->
-      <div class="card">
+      <div class="card costs-card">
         <div class="costs-section-title">Direct Costs: What Shows Up in the Numbers</div>
         <div class="cost-row">
           <div><div class="cost-name">Employee Turnover</div><div class="cost-desc">The cost of replacing people who leave, from recruiting and onboarding to the time it takes to get someone productive again.</div></div>
