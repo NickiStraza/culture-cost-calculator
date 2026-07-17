@@ -976,9 +976,14 @@
             <input type="text" id="lcFirst" placeholder="Your first name" maxlength="100" autocomplete="given-name">
           </div>
           <div class="field">
-            <label for="lcEmail">Email address <span style="color:var(--red)">*</span></label>
-            <input type="email" id="lcEmail" placeholder="you@yourorganization.com" maxlength="254" autocomplete="email">
+            <label for="lcLast">Last name <span class="label-note">(optional)</span></label>
+            <input type="text" id="lcLast" placeholder="Your last name" maxlength="100" autocomplete="family-name">
           </div>
+        </div>
+
+        <div class="field">
+          <label for="lcEmail">Email address <span style="color:var(--red)">*</span></label>
+          <input type="email" id="lcEmail" placeholder="you@yourorganization.com" maxlength="254" autocomplete="email">
         </div>
 
         <!-- Honeypot: hidden from real users, bots typically fill this in -->
@@ -996,6 +1001,7 @@
             <input type="checkbox" id="lcNewsletter">
             <span>Add me to the Straza Solutions newsletter for leadership and culture insights.</span>
           </label>
+          <p class="field-note" style="margin-left: 27px; margin-top: -6px;">You will also receive a free copy of the Culture Audit Tool. Unsubscribe any time.</p>
         </div>
 
         <button class="btn btn-primary" id="lcSubmitBtn" onclick="submitLead()">Generate my analysis</button>
@@ -1333,6 +1339,7 @@
     /* ── Lead Submission + AI Analysis ─────────────── */
     async function submitLead() {
       const firstName  = document.getElementById('lcFirst').value.trim();
+      const lastName   = document.getElementById('lcLast').value.trim();
       const email      = document.getElementById('lcEmail').value.trim();
       const canContact = document.getElementById('lcFollowUp').checked;
       const newsletter = document.getElementById('lcNewsletter').checked;
@@ -1392,7 +1399,7 @@
       // Send notification to Nicki (with or without analysis)
       try {
         await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_NICKI_TEMPLATE, {
-          lead_name:    firstName,
+          lead_name:    lastName ? (firstName + ' ' + lastName) : firstName,
           lead_email:   email,
           can_contact:  canContact ? 'Yes' : 'No',
           org_name:     currentResults.orgName,
@@ -1418,7 +1425,7 @@
       lastSubmitAt = Date.now();
 
       // Mailchimp subscribe if opted in
-      if (newsletter) { subscribeToMailchimp(email, firstName); }
+      if (newsletter) { subscribeToMailchimp(email, firstName, lastName); }
 
       // Show analysis on screen
       // AI response is sanitized before insertion to prevent any unexpected HTML from the API
@@ -1594,7 +1601,7 @@ Warm, grounded, and human. Not clinical or consultant-like. Plain language. No j
     }
 
     /* ── Mailchimp JSONP Subscribe (using the real embedded-form endpoint, tagged) ── */
-    function subscribeToMailchimp(email, firstName) {
+    function subscribeToMailchimp(email, firstName, lastName) {
       const cb = 'mc_cb_' + Date.now();
       const params = new URLSearchParams({
         u: 'bebd41c6246b91fd9a62aae3a',
@@ -1602,6 +1609,7 @@ Warm, grounded, and human. Not clinical or consultant-like. Plain language. No j
         f_id: '0080a0e6f0',
         EMAIL: email,
         FNAME: firstName,
+        LNAME: lastName || '',
         tags: '3711386', // "Culture Cost Calculator Website"
         'b_bebd41c6246b91fd9a62aae3a_4c288a4b41': '', // honeypot field Mailchimp expects present and empty
         c: cb
